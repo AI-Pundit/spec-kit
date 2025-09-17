@@ -25,7 +25,7 @@ module.exports = {
   ignorePatterns: [
     'dist/',
     'node_modules/',
-    'tasks/',
-    'widgets/'
+    '/tasks/',  // This ignores the root tasks/ directory (compiled JS files)
+    '/widgets/' // This ignores the root widgets/ directory (compiled JS files)
   ]
 };

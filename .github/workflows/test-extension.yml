@@ -1,0 +1,320 @@
+name: Test Extension in Azure DevOps
+
+on:
+  push:
+    branches: [ main, develop, 'users/ritesh/speckit_feature' ]
+  pull_request:
+    branches: [ main, develop ]
+  workflow_dispatch:
+    inputs:
+      test_type:
+        description: 'Type of test to run'
+        required: true
+        default: 'basic'
+        type: choice
+        options:
+        - basic
+        - full
+        - ai-assistants
+  schedule:
+    - cron: '0 2 * * 1'  # Run every Monday at 2 AM
+
+env:
+  AZURE_DEVOPS_ORG: ${{ secrets.AZURE_DEVOPS_ORG }}
+  AZURE_DEVOPS_PROJECT: ${{ secrets.AZURE_DEVOPS_PROJECT }}
+
+jobs:
+  test-basic:
+    name: Basic Functionality Test
+    runs-on: ubuntu-latest
+    if: github.event.inputs.test_type == 'basic' || github.event.inputs.test_type == 'full' || github.event_name == 'schedule'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+        
+    - name: Install dependencies
+      run: |
+        npm ci
+        pip install uv
+        
+    - name: Build extension
+      run: npm run build
+      
+    - name: Package extension
+      run: npm run package
+      
+    - name: Test Constitution Task
+      run: |
+        # Create test environment
+        mkdir -p test-env/{specs,plans,tasks,validation-reports}
+        
+        # Set environment variables
+        export INPUT_PROJECTNAME="test-project"
+        export INPUT_PROJECTPATH="$(pwd)/test-env"
+        export INPUT_AIASSISTANT="copilot"
+        export INPUT_SCRIPTTYPE="sh"
+        export INPUT_CONSTITUTIONVERSION="latest"
+        export INPUT_UPDATEEXISTING="false"
+        export INPUT_DEBUGMODE="true"
+        
+        # Test Constitution task
+        echo "Testing Constitution task..."
+        node dist/tasks/constitution/task.js
+        
+        # Verify output
+        if [ -f "test-env/.specify/memory/constitution.md" ]; then
+          echo "✅ Constitution task test passed"
+        else
+          echo "❌ Constitution task test failed"
+          exit 1
+        fi
+        
+    - name: Test Specify Task
+      run: |
+        # Set environment variables
+        export INPUT_PROJECTNAME="test-project"
+        export INPUT_PROJECTPATH="$(pwd)/test-env"
+        export INPUT_AIASSISTANT="copilot"
+        export INPUT_SCRIPTTYPE="sh"
+        export INPUT_SPECIFYVERSION="latest"
+        export INPUT_SKIPGIT="true"
+        export INPUT_IGNOREAGENTTOOLS="true"
+        export INPUT_DEBUGMODE="true"
+        
+        # Test Specify task
+        echo "Testing Specify task..."
+        node dist/tasks/specify/task.js
+        
+        # Verify output
+        if [ -d "test-env/test-project" ]; then
+          echo "✅ Specify task test passed"
+        else
+          echo "❌ Specify task test failed"
+          exit 1
+        fi
+        
+    - name: Test Plan Task
+      run: |
+        # Set environment variables for Plan task
+        export INPUT_SPECPATH="$(pwd)/test-env/specs"
+        export INPUT_TECHSTACK="React with TypeScript, Node.js backend"
+        export INPUT_AIASSISTANT="copilot"
+        export INPUT_OUTPUTPATH="$(pwd)/test-env/plans"
+        export INPUT_VALIDATEPLAN="true"
+        export INPUT_DEBUGMODE="true"
+        
+        # Test Plan task
+        echo "Testing Plan task..."
+        node dist/tasks/plan/task.js
+        
+        # Verify output
+        if [ -d "test-env/plans" ]; then
+          echo "✅ Plan task test passed"
+        else
+          echo "❌ Plan task test failed"
+          exit 1
+        fi
+        
+    - name: Test Tasks Task
+      run: |
+        # Set environment variables for Tasks task
+        export INPUT_PLANPATH="$(pwd)/test-env/plans"
+        export INPUT_AIASSISTANT="copilot"
+        export INPUT_OUTPUTPATH="$(pwd)/test-env/tasks"
+        export INPUT_CREATEWORKITEMS="false"
+        export INPUT_ASSIGNTOTEAM="false"
+        export INPUT_DEBUGMODE="true"
+        
+        # Test Tasks task
+        echo "Testing Tasks task..."
+        node dist/tasks/tasks/task.js
+        
+        # Verify output
+        if [ -d "test-env/tasks" ]; then
+          echo "✅ Tasks task test passed"
+        else
+          echo "❌ Tasks task test failed"
+          exit 1
+        fi
+        
+    - name: Test ValidateSpec Task
+      run: |
+        # Set environment variables for ValidateSpec task
+        export INPUT_SPECPATH="$(pwd)/test-env/specs"
+        export INPUT_FAILONERROR="true"
+        export INPUT_GENERATEREPORT="true"
+        export INPUT_OUTPUTPATH="$(pwd)/test-env/validation-reports"
+        export INPUT_DEBUGMODE="true"
+        
+        # Test ValidateSpec task
+        echo "Testing ValidateSpec task..."
+        node dist/tasks/validate-spec/task.js
+        
+        # Verify output
+        if [ -d "test-env/validation-reports" ]; then
+          echo "✅ ValidateSpec task test passed"
+        else
+          echo "❌ ValidateSpec task test failed"
+          exit 1
+        fi
+
+  test-ai-assistants:
+    name: AI Assistants Test
+    runs-on: ubuntu-latest
+    if: github.event.inputs.test_type == 'ai-assistants' || github.event.inputs.test_type == 'full'
+    strategy:
+      matrix:
+        ai_assistant: [copilot, claude, gemini, cursor]
+        
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+        
+    - name: Install dependencies
+      run: |
+        npm ci
+        pip install uv
+        
+    - name: Build extension
+      run: npm run build
+      
+    - name: Test with ${{ matrix.ai_assistant }}
+      run: |
+        # Create test environment
+        mkdir -p test-env-ai/{specs,plans,tasks,validation-reports}
+        
+        # Set environment variables
+        export INPUT_PROJECTNAME="test-project-${{ matrix.ai_assistant }}"
+        export INPUT_PROJECTPATH="$(pwd)/test-env-ai"
+        export INPUT_AIASSISTANT="${{ matrix.ai_assistant }}"
+        export INPUT_SCRIPTTYPE="sh"
+        export INPUT_SPECIFYVERSION="latest"
+        export INPUT_SKIPGIT="true"
+        export INPUT_IGNOREAGENTTOOLS="true"
+        export INPUT_DEBUGMODE="true"
+        
+        # Test Specify task with specific AI assistant
+        echo "Testing Specify task with ${{ matrix.ai_assistant }}..."
+        node dist/tasks/specify/task.js
+        
+        # Verify output
+        if [ -d "test-env-ai/test-project-${{ matrix.ai_assistant }}" ]; then
+          echo "✅ Specify task test passed with ${{ matrix.ai_assistant }}"
+        else
+          echo "❌ Specify task test failed with ${{ matrix.ai_assistant }}"
+          exit 1
+        fi
+
+  test-azure-pipeline:
+    name: Azure DevOps Pipeline Test
+    runs-on: ubuntu-latest
+    if: github.event.inputs.test_type == 'full'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+        
+    - name: Install dependencies
+      run: |
+        npm ci
+        pip install uv
+        
+    - name: Build extension
+      run: npm run build
+      
+    - name: Package extension
+      run: npm run package
+      
+    - name: Create test pipeline YAML
+      run: |
+        cat > test-pipeline.yml << 'EOF'
+        trigger:
+        - main
+
+        pool:
+          vmImage: 'ubuntu-latest'
+
+        variables:
+          AI_ASSISTANT: 'copilot'
+          SCRIPT_TYPE: 'sh'
+
+        steps:
+        - script: |
+            python --version
+            pip install uv
+          displayName: 'Install Prerequisites'
+
+        - task: Specify@1
+          displayName: 'Initialize Spec-Driven Development'
+          inputs:
+            projectName: '$(Build.Repository.Name)'
+            projectPath: '$(Build.SourcesDirectory)'
+            aiAssistant: '$(AI_ASSISTANT)'
+            scriptType: '$(SCRIPT_TYPE)'
+            debugMode: true
+
+        - task: Plan@1
+          displayName: 'Generate Implementation Plan'
+          inputs:
+            specPath: '$(Build.SourcesDirectory)/specs'
+            techStack: 'React with TypeScript, Node.js backend, PostgreSQL database'
+            aiAssistant: '$(AI_ASSISTANT)'
+            debugMode: true
+
+        - task: Tasks@1
+          displayName: 'Generate Task List'
+          inputs:
+            planPath: '$(Build.SourcesDirectory)/plans'
+            aiAssistant: '$(AI_ASSISTANT)'
+            debugMode: true
+
+        - task: ValidateSpec@1
+          displayName: 'Validate Specifications'
+          inputs:
+            specPath: '$(Build.SourcesDirectory)/specs'
+            failOnError: true
+            debugMode: true
+
+        - script: |
+            echo "Generated files:"
+            find . -name "*.md" -type f | head -10
+            ls -la specs/ plans/ tasks/ 2>/dev/null || echo "No generated directories yet"
+          displayName: 'Show Generated Files'
+        EOF
+        
+    - name: Upload test pipeline
+      uses: actions/upload-artifact@v4
+      with:
+        name: test-pipeline
+        path: test-pipeline.yml

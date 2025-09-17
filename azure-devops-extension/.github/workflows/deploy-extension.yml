@@ -71,10 +71,6 @@ jobs:
         
         node dist/tasks/constitution/task.js
         
-        # Debug: List test-env contents
-        echo "Test environment contents:"
-        find test-env -type f -name "*.md" | head -10
-        
         # Verify constitution was created
         if [ -f "test-env/test-project/.specify/memory/constitution.md" ]; then
           echo "✅ Constitution task test passed"

@@ -54,7 +54,9 @@ jobs:
     - name: Test tasks locally
       run: |
         cd azure-devops-extension
-        # Create test environment
+        # Clean up any existing test environment
+        rm -rf test-env
+        # Create fresh test environment
         mkdir -p test-env/{specs,plans,tasks,validation-reports}
         
         # Test Constitution task first
@@ -70,26 +72,41 @@ jobs:
         node dist/tasks/constitution/task.js
         
         # Verify constitution was created
-        if [ -f "test-env/.specify/memory/constitution.md" ]; then
+        if [ -f "test-env/test-project/.specify/memory/constitution.md" ]; then
           echo "✅ Constitution task test passed"
         else
           echo "❌ Constitution task test failed"
+          echo "Expected file: test-env/test-project/.specify/memory/constitution.md"
+          echo "Available files:"
+          find test-env -name "constitution.md" 2>/dev/null || echo "No constitution.md files found"
           exit 1
         fi
         
-        # Test Specify task
+        # Test Specify task (in a separate project)
         echo "Testing Specify task..."
+        export INPUT_PROJECTNAME="test-specify-project"
+        export INPUT_PROJECTPATH="$(pwd)/test-env"
+        export INPUT_AIASSISTANT="copilot"
+        export INPUT_SCRIPTTYPE="sh"
         export INPUT_SPECIFYVERSION="latest"
         export INPUT_SKIPGIT="true"
         export INPUT_IGNOREAGENTTOOLS="true"
+        export INPUT_DEBUGMODE="true"
         
         node dist/tasks/specify/task.js
         
+        # Debug: List test-env contents after Specify task
+        echo "Test environment contents after Specify task:"
+        find test-env -type d -name "*project*" | head -10
+        
         # Verify output
-        if [ -d "test-env/test-project" ]; then
+        if [ -d "test-env/test-specify-project" ]; then
           echo "✅ Specify task test passed"
         else
           echo "❌ Specify task test failed"
+          echo "Expected directory: test-env/test-specify-project"
+          echo "Available directories:"
+          find test-env -type d | head -10
           exit 1
         fi
         

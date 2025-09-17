@@ -37,6 +37,8 @@ jobs:
       uses: actions/setup-node@v4
       with:
         node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: 'azure-devops-extension/package-lock.json'
         
     - name: Setup Python
       uses: actions/setup-python@v4
@@ -45,17 +47,23 @@ jobs:
         
     - name: Install dependencies
       run: |
+        cd azure-devops-extension
         npm ci
         pip install uv
         
     - name: Build extension
-      run: npm run build
+      run: |
+        cd azure-devops-extension
+        npm run build
       
     - name: Package extension
-      run: npm run package
+      run: |
+        cd azure-devops-extension
+        npm run package
       
     - name: Test Constitution Task
       run: |
+        cd azure-devops-extension
         # Create test environment
         mkdir -p test-env/{specs,plans,tasks,validation-reports}
         
@@ -82,6 +90,7 @@ jobs:
         
     - name: Test Specify Task
       run: |
+        cd azure-devops-extension
         # Set environment variables
         export INPUT_PROJECTNAME="test-project"
         export INPUT_PROJECTPATH="$(pwd)/test-env"
@@ -106,6 +115,7 @@ jobs:
         
     - name: Test Plan Task
       run: |
+        cd azure-devops-extension
         # Set environment variables for Plan task
         export INPUT_SPECPATH="$(pwd)/test-env/specs"
         export INPUT_TECHSTACK="React with TypeScript, Node.js backend"
@@ -128,6 +138,7 @@ jobs:
         
     - name: Test Tasks Task
       run: |
+        cd azure-devops-extension
         # Set environment variables for Tasks task
         export INPUT_PLANPATH="$(pwd)/test-env/plans"
         export INPUT_AIASSISTANT="copilot"
@@ -150,6 +161,7 @@ jobs:
         
     - name: Test ValidateSpec Task
       run: |
+        cd azure-devops-extension
         # Set environment variables for ValidateSpec task
         export INPUT_SPECPATH="$(pwd)/test-env/specs"
         export INPUT_FAILONERROR="true"
@@ -185,6 +197,8 @@ jobs:
       uses: actions/setup-node@v4
       with:
         node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: 'azure-devops-extension/package-lock.json'
         
     - name: Setup Python
       uses: actions/setup-python@v4
@@ -193,11 +207,14 @@ jobs:
         
     - name: Install dependencies
       run: |
+        cd azure-devops-extension
         npm ci
         pip install uv
         
     - name: Build extension
-      run: npm run build
+      run: |
+        cd azure-devops-extension
+        npm run build
       
     - name: Test with ${{ matrix.ai_assistant }}
       run: |
@@ -239,6 +256,8 @@ jobs:
       uses: actions/setup-node@v4
       with:
         node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: 'azure-devops-extension/package-lock.json'
         
     - name: Setup Python
       uses: actions/setup-python@v4
@@ -247,14 +266,19 @@ jobs:
         
     - name: Install dependencies
       run: |
+        cd azure-devops-extension
         npm ci
         pip install uv
         
     - name: Build extension
-      run: npm run build
+      run: |
+        cd azure-devops-extension
+        npm run build
       
     - name: Package extension
-      run: npm run package
+      run: |
+        cd azure-devops-extension
+        npm run package
       
     - name: Create test pipeline YAML
       run: |

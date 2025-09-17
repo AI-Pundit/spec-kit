@@ -1,0 +1,196 @@
+# GitHub Actions Configuration for Azure DevOps Extension
+# This file contains reusable configuration for all workflows
+
+name: Extension Configuration
+
+# Reusable workflow configurations
+on:
+  workflow_call:
+    inputs:
+      environment:
+        required: false
+        type: string
+        default: 'development'
+      test_type:
+        required: false
+        type: string
+        default: 'basic'
+
+env:
+  # Extension Configuration
+  EXTENSION_ID: 'spec-kit-extension'
+  PUBLISHER_ID: 'spec-kit'
+  EXTENSION_NAME: 'Spec Kit - Spec-Driven Development'
+  
+  # Node.js Configuration
+  NODE_VERSION: '18'
+  NPM_CACHE: 'npm'
+  
+  # Python Configuration
+  PYTHON_VERSION: '3.11'
+  
+  # Build Configuration
+  BUILD_MODE: 'production'
+  
+  # Test Configuration
+  TEST_TIMEOUT: '300000'  # 5 minutes
+  
+  # Deployment Configuration
+  DEPLOYMENT_TIMEOUT: '600000'  # 10 minutes
+
+# Reusable job configurations
+jobs:
+  setup-environment:
+    name: Setup Environment
+    runs-on: ubuntu-latest
+    outputs:
+      node-version: ${{ steps.setup-node.outputs.node-version }}
+      python-version: ${{ steps.setup-python.outputs.python-version }}
+      cache-key: ${{ steps.cache-key.outputs.key }}
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      id: setup-node
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: ${{ env.NPM_CACHE }}
+        
+    - name: Setup Python
+      id: setup-python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+        
+    - name: Generate cache key
+      id: cache-key
+      run: |
+        echo "key=extension-${{ runner.os }}-${{ env.NODE_VERSION }}-${{ env.PYTHON_VERSION }}-${{ hashFiles('package-lock.json') }}" >> $GITHUB_OUTPUT
+        
+    - name: Install dependencies
+      run: |
+        npm ci
+        pip install uv
+        
+    - name: Verify installations
+      run: |
+        echo "Node.js version: $(node --version)"
+        echo "Python version: $(python --version)"
+        echo "uv version: $(uv --version)"
+        echo "npm version: $(npm --version)"
+
+  build-extension:
+    name: Build Extension
+    needs: setup-environment
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: ${{ env.NPM_CACHE }}
+        
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+        
+    - name: Install dependencies
+      run: |
+        npm ci
+        pip install uv
+        
+    - name: Lint code
+      run: npm run lint
+      
+    - name: Build extension
+      run: npm run build
+      
+    - name: Package extension
+      run: npm run package
+      
+    - name: Verify package
+      run: |
+        if [ -f "spec-kit.spec-kit-extension-*.vsix" ]; then
+          echo "✅ Extension packaged successfully"
+          ls -la spec-kit.spec-kit-extension-*.vsix
+        else
+          echo "❌ Extension packaging failed"
+          exit 1
+        fi
+        
+    - name: Upload extension artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: extension-package
+        path: spec-kit.spec-kit-extension-*.vsix
+        retention-days: 30
+
+  test-extension:
+    name: Test Extension
+    needs: setup-environment
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: ${{ env.NPM_CACHE }}
+        
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+        
+    - name: Install dependencies
+      run: |
+        npm ci
+        pip install uv
+        
+    - name: Build extension
+      run: npm run build
+      
+    - name: Run tests
+      run: |
+        # Create test environment
+        mkdir -p test-env/{specs,plans,tasks,validation-reports}
+        
+        # Test Specify task
+        echo "Testing Specify task..."
+        export INPUT_PROJECTNAME="test-project"
+        export INPUT_PROJECTPATH="$(pwd)/test-env"
+        export INPUT_AIASSISTANT="copilot"
+        export INPUT_SCRIPTTYPE="sh"
+        export INPUT_SPECIFYVERSION="latest"
+        export INPUT_SKIPGIT="true"
+        export INPUT_IGNOREAGENTTOOLS="true"
+        export INPUT_DEBUGMODE="true"
+        
+        node dist/tasks/specify/task.js
+        
+        # Verify output
+        if [ -d "test-env/test-project" ]; then
+          echo "✅ Specify task test passed"
+        else
+          echo "❌ Specify task test failed"
+          exit 1
+        fi
+        
+    - name: Upload test results
+      uses: actions/upload-artifact@v4
+      with:
+        name: test-results
+        path: test-env/
+        retention-days: 7

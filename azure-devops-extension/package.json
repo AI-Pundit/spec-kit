@@ -9,7 +9,7 @@
     "watch": "webpack --mode development --watch",
     "test": "jest",
     "test:local": "node scripts/test-local.js",
-    "lint": "eslint src/**/*.ts",
+    "lint": "eslint \"src/**/*.ts\"",
     "package": "npx tfx extension create --manifest-globs vss-extension.json",
     "package:dev": "npx tfx extension create --manifest-globs vss-extension.json --rev-version",
     "publish": "npx tfx extension publish --manifest-globs vss-extension.json",

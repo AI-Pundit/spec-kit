@@ -1,7 +1,7 @@
 {
-  "id": "e5f6g7h8-i9j0-1234-efgh-567890123456",
+  "id": "3e8ad714-b4b5-4b8a-b312-8a9dd5804adf",
   "name": "Constitution",
-  "friendlyName": "Constitution - Initialize Project with Constitution",
+  "friendlyName": "Constitution - Initialize Project",
   "description": "Initialize a new spec-driven development project with the constitution that defines the foundational principles and constraints. This must be the first task in the workflow.",
   "helpMarkDown": "https://github.com/github/spec-kit",
   "category": "Build",

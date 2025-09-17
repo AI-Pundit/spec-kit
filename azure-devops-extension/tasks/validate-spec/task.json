@@ -1,0 +1,85 @@
+{
+  "id": "d4e5f6g7-h8i9-0123-defg-456789012345",
+  "name": "ValidateSpec",
+  "friendlyName": "Validate Spec - Validate Specification",
+  "description": "Validate specifications against project requirements and quality standards. This task checks specification completeness, format compliance, and content quality.",
+  "helpMarkDown": "https://github.com/github/spec-kit",
+  "category": "Build",
+  "author": "Spec Kit Team",
+  "version": {
+    "Major": 1,
+    "Minor": 0,
+    "Patch": 0
+  },
+  "instanceNameFormat": "Validate Specification",
+  "groups": [
+    {
+      "name": "spec",
+      "displayName": "Specification Configuration",
+      "isExpanded": true
+    },
+    {
+      "name": "validation",
+      "displayName": "Validation Options",
+      "isExpanded": true
+    },
+    {
+      "name": "advanced",
+      "displayName": "Advanced Options",
+      "isExpanded": false
+    }
+  ],
+  "inputs": [
+    {
+      "name": "specPath",
+      "type": "string",
+      "label": "Specification Path",
+      "defaultValue": "$(Build.SourcesDirectory)/specs",
+      "required": true,
+      "helpMarkDown": "Path to the specifications directory. Defaults to $(Build.SourcesDirectory)/specs.",
+      "groupName": "spec"
+    },
+    {
+      "name": "specFile",
+      "type": "string",
+      "label": "Specification File",
+      "defaultValue": "spec.md",
+      "required": false,
+      "helpMarkDown": "Name of the specification file to validate. Defaults to spec.md.",
+      "groupName": "spec"
+    },
+    {
+      "name": "failOnError",
+      "type": "boolean",
+      "label": "Fail on Error",
+      "defaultValue": "true",
+      "required": false,
+      "helpMarkDown": "Fail the build if validation errors are found.",
+      "groupName": "validation"
+    },
+    {
+      "name": "generateReport",
+      "type": "boolean",
+      "label": "Generate Report",
+      "defaultValue": "true",
+      "required": false,
+      "helpMarkDown": "Generate a detailed validation report.",
+      "groupName": "validation"
+    },
+    {
+      "name": "outputPath",
+      "type": "string",
+      "label": "Output Path",
+      "defaultValue": "$(Build.SourcesDirectory)/validation-reports",
+      "required": false,
+      "helpMarkDown": "Path where the validation report will be saved. Defaults to $(Build.SourcesDirectory)/validation-reports.",
+      "groupName": "advanced"
+    }
+  ],
+  "execution": {
+    "Node": {
+      "target": "task.js",
+      "argumentFormat": "string"
+    }
+  }
+}

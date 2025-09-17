@@ -1,0 +1,100 @@
+{
+  "id": "c3d4e5f6-g7h8-9012-cdef-345678901234",
+  "name": "Tasks",
+  "friendlyName": "Tasks - Generate Task List",
+  "description": "Generate actionable task lists from implementation plans using the Spec Kit task generation capabilities. This task creates detailed, assignable tasks with dependencies and acceptance criteria.",
+  "helpMarkDown": "https://github.com/github/spec-kit",
+  "category": "Build",
+  "author": "Spec Kit Team",
+  "version": {
+    "Major": 1,
+    "Minor": 0,
+    "Patch": 0
+  },
+  "instanceNameFormat": "Generate Task List",
+  "groups": [
+    {
+      "name": "plan",
+      "displayName": "Plan Configuration",
+      "isExpanded": true
+    },
+    {
+      "name": "tasks",
+      "displayName": "Task Generation",
+      "isExpanded": true
+    },
+    {
+      "name": "advanced",
+      "displayName": "Advanced Options",
+      "isExpanded": false
+    }
+  ],
+  "inputs": [
+    {
+      "name": "planPath",
+      "type": "string",
+      "label": "Plan Path",
+      "defaultValue": "$(Build.SourcesDirectory)/plans",
+      "required": true,
+      "helpMarkDown": "Path to the implementation plans directory. Defaults to $(Build.SourcesDirectory)/plans.",
+      "groupName": "plan"
+    },
+    {
+      "name": "planFile",
+      "type": "string",
+      "label": "Plan File",
+      "defaultValue": "plan.md",
+      "required": false,
+      "helpMarkDown": "Name of the plan file to process. Defaults to plan.md.",
+      "groupName": "plan"
+    },
+    {
+      "name": "aiAssistant",
+      "type": "pickList",
+      "label": "AI Assistant",
+      "defaultValue": "copilot",
+      "required": true,
+      "helpMarkDown": "AI assistant to use for task generation.",
+      "options": {
+        "copilot": "GitHub Copilot",
+        "claude": "Claude Code",
+        "gemini": "Gemini CLI",
+        "cursor": "Cursor"
+      },
+      "groupName": "tasks"
+    },
+    {
+      "name": "createWorkItems",
+      "type": "boolean",
+      "label": "Create Work Items",
+      "defaultValue": "false",
+      "required": false,
+      "helpMarkDown": "Create work items in Azure DevOps for each generated task.",
+      "groupName": "tasks"
+    },
+    {
+      "name": "assignToTeam",
+      "type": "boolean",
+      "label": "Assign to Team",
+      "defaultValue": "false",
+      "required": false,
+      "helpMarkDown": "Assign generated tasks to team members.",
+      "groupName": "tasks"
+    },
+    {
+      "name": "outputPath",
+      "type": "string",
+      "label": "Output Path",
+      "defaultValue": "$(Build.SourcesDirectory)/tasks",
+      "required": false,
+      "helpMarkDown": "Path where the generated tasks will be saved. Defaults to $(Build.SourcesDirectory)/tasks.",
+      "groupName": "advanced"
+    }
+  ],
+  "execution": {
+    "Node": {
+      "target": "task.js",
+      "argumentFormat": "string"
+    }
+  }
+}

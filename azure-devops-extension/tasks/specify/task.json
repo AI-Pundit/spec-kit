@@ -1,0 +1,122 @@
+{
+  "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+  "name": "Specify",
+  "friendlyName": "Specify - Initialize Spec-Driven Dev",
+  "description": "Initialize a new spec-driven development project using the Specify CLI tool. This task sets up the project structure, templates, and AI assistant configuration for spec-driven development.",
+  "helpMarkDown": "https://github.com/github/spec-kit",
+  "category": "Build",
+  "author": "Spec Kit Team",
+  "version": {
+    "Major": 1,
+    "Minor": 0,
+    "Patch": 0
+  },
+  "instanceNameFormat": "Initialize Spec-Driven Development Project",
+  "groups": [
+    {
+      "name": "project",
+      "displayName": "Project Configuration",
+      "isExpanded": true
+    },
+    {
+      "name": "ai",
+      "displayName": "AI Assistant Configuration",
+      "isExpanded": true
+    },
+    {
+      "name": "advanced",
+      "displayName": "Advanced Options",
+      "isExpanded": false
+    }
+  ],
+  "inputs": [
+    {
+      "name": "projectName",
+      "type": "string",
+      "label": "Project Name",
+      "defaultValue": "$(Build.Repository.Name)",
+      "required": true,
+      "helpMarkDown": "Name for the spec-driven development project. Defaults to the repository name.",
+      "groupName": "project"
+    },
+    {
+      "name": "projectPath",
+      "type": "string",
+      "label": "Project Path",
+      "defaultValue": "$(Build.SourcesDirectory)",
+      "required": true,
+      "helpMarkDown": "Path where the project will be initialized. Defaults to the build sources directory.",
+      "groupName": "project"
+    },
+    {
+      "name": "aiAssistant",
+      "type": "pickList",
+      "label": "AI Assistant",
+      "defaultValue": "copilot",
+      "required": true,
+      "helpMarkDown": "Select the AI assistant to use for spec-driven development.",
+      "options": {
+        "copilot": "GitHub Copilot",
+        "claude": "Claude Code",
+        "gemini": "Gemini CLI",
+        "cursor": "Cursor"
+      },
+      "groupName": "ai"
+    },
+    {
+      "name": "scriptType",
+      "type": "pickList",
+      "label": "Script Type",
+      "defaultValue": "ps",
+      "required": true,
+      "helpMarkDown": "Select the script type for the project (PowerShell for Windows, Bash for Linux/macOS).",
+      "options": {
+        "ps": "PowerShell",
+        "sh": "Bash/Shell"
+      },
+      "groupName": "ai"
+    },
+    {
+      "name": "specifyVersion",
+      "type": "string",
+      "label": "Specify CLI Version",
+      "defaultValue": "latest",
+      "required": false,
+      "helpMarkDown": "Version of the Specify CLI to use. Use 'latest' for the most recent version.",
+      "groupName": "advanced"
+    },
+    {
+      "name": "skipGit",
+      "type": "boolean",
+      "label": "Skip Git Initialization",
+      "defaultValue": "false",
+      "required": false,
+      "helpMarkDown": "Skip git repository initialization if already in a git repository.",
+      "groupName": "advanced"
+    },
+    {
+      "name": "ignoreAgentTools",
+      "type": "boolean",
+      "label": "Ignore Agent Tools Check",
+      "defaultValue": "false",
+      "required": false,
+      "helpMarkDown": "Skip checks for AI agent tools like Claude Code or Gemini CLI.",
+      "groupName": "advanced"
+    },
+    {
+      "name": "debugMode",
+      "type": "boolean",
+      "label": "Debug Mode",
+      "defaultValue": "false",
+      "required": false,
+      "helpMarkDown": "Enable debug output for troubleshooting.",
+      "groupName": "advanced"
+    }
+  ],
+  "execution": {
+    "Node": {
+      "target": "task.js",
+      "argumentFormat": "string"
+    }
+  }
+}

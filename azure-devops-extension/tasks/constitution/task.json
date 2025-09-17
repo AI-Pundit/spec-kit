@@ -1,0 +1,122 @@
+{
+  "id": "e5f6g7h8-i9j0-1234-efgh-567890123456",
+  "name": "Constitution",
+  "friendlyName": "Constitution - Initialize Project with Constitution",
+  "description": "Initialize a new spec-driven development project with the constitution that defines the foundational principles and constraints. This must be the first task in the workflow.",
+  "helpMarkDown": "https://github.com/github/spec-kit",
+  "category": "Build",
+  "author": "Spec Kit Team",
+  "version": {
+    "Major": 1,
+    "Minor": 0,
+    "Patch": 0
+  },
+  "instanceNameFormat": "Create Project Constitution",
+  "groups": [
+    {
+      "name": "project",
+      "displayName": "Project Configuration",
+      "isExpanded": true
+    },
+    {
+      "name": "constitution",
+      "displayName": "Constitution Settings",
+      "isExpanded": true
+    },
+    {
+      "name": "advanced",
+      "displayName": "Advanced Options",
+      "isExpanded": false
+    }
+  ],
+  "inputs": [
+    {
+      "name": "projectName",
+      "type": "string",
+      "label": "Project Name",
+      "defaultValue": "$(Build.Repository.Name)",
+      "required": true,
+      "helpMarkDown": "Name for the spec-driven development project. Defaults to the repository name.",
+      "groupName": "project"
+    },
+    {
+      "name": "projectPath",
+      "type": "string",
+      "label": "Project Path",
+      "defaultValue": "$(Build.SourcesDirectory)",
+      "required": true,
+      "helpMarkDown": "Path where the project will be initialized. Defaults to the build sources directory.",
+      "groupName": "project"
+    },
+    {
+      "name": "constitutionPath",
+      "type": "string",
+      "label": "Constitution Path",
+      "defaultValue": "",
+      "required": false,
+      "helpMarkDown": "Custom path for the constitution file. If not specified, uses the default .specify/memory/constitution.md path.",
+      "groupName": "constitution"
+    },
+    {
+      "name": "aiAssistant",
+      "type": "pickList",
+      "label": "AI Assistant",
+      "defaultValue": "copilot",
+      "required": true,
+      "helpMarkDown": "Select the AI assistant to use for constitution generation.",
+      "options": {
+        "copilot": "GitHub Copilot",
+        "claude": "Claude Code",
+        "gemini": "Gemini CLI",
+        "cursor": "Cursor"
+      },
+      "groupName": "constitution"
+    },
+    {
+      "name": "scriptType",
+      "type": "pickList",
+      "label": "Script Type",
+      "defaultValue": "ps",
+      "required": true,
+      "helpMarkDown": "Select the script type for the project (PowerShell for Windows, Bash for Linux/macOS).",
+      "options": {
+        "ps": "PowerShell",
+        "sh": "Bash/Shell"
+      },
+      "groupName": "constitution"
+    },
+    {
+      "name": "constitutionVersion",
+      "type": "string",
+      "label": "Constitution Version",
+      "defaultValue": "latest",
+      "required": false,
+      "helpMarkDown": "Version of the constitution template to use. Use 'latest' for the most recent version.",
+      "groupName": "advanced"
+    },
+    {
+      "name": "updateExisting",
+      "type": "boolean",
+      "label": "Initialize in Current Directory",
+      "defaultValue": "false",
+      "required": false,
+      "helpMarkDown": "Initialize the project in the current directory instead of creating a new subdirectory.",
+      "groupName": "advanced"
+    },
+    {
+      "name": "debugMode",
+      "type": "boolean",
+      "label": "Debug Mode",
+      "defaultValue": "false",
+      "required": false,
+      "helpMarkDown": "Enable debug output for troubleshooting.",
+      "groupName": "advanced"
+    }
+  ],
+  "execution": {
+    "Node": {
+      "target": "task.js",
+      "argumentFormat": "string"
+    }
+  }
+}

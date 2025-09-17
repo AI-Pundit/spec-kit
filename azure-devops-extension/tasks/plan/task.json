@@ -1,0 +1,109 @@
+{
+  "id": "b2c3d4e5-f6g7-8901-bcde-f23456789012",
+  "name": "Plan",
+  "friendlyName": "Plan - Generate Implementation Plan",
+  "description": "Generate a technical implementation plan from specifications using the Spec Kit planning capabilities. This task creates detailed implementation steps, architecture decisions, and technology stack configurations.",
+  "helpMarkDown": "https://github.com/github/spec-kit",
+  "category": "Build",
+  "author": "Spec Kit Team",
+  "version": {
+    "Major": 1,
+    "Minor": 0,
+    "Patch": 0
+  },
+  "instanceNameFormat": "Generate Implementation Plan",
+  "groups": [
+    {
+      "name": "spec",
+      "displayName": "Specification Configuration",
+      "isExpanded": true
+    },
+    {
+      "name": "tech",
+      "displayName": "Technology Stack",
+      "isExpanded": true
+    },
+    {
+      "name": "advanced",
+      "displayName": "Advanced Options",
+      "isExpanded": false
+    }
+  ],
+  "inputs": [
+    {
+      "name": "specPath",
+      "type": "string",
+      "label": "Specification Path",
+      "defaultValue": "$(Build.SourcesDirectory)/specs",
+      "required": true,
+      "helpMarkDown": "Path to the specifications directory. Defaults to $(Build.SourcesDirectory)/specs.",
+      "groupName": "spec"
+    },
+    {
+      "name": "specFile",
+      "type": "string",
+      "label": "Specification File",
+      "defaultValue": "spec.md",
+      "required": false,
+      "helpMarkDown": "Name of the specification file to process. Defaults to spec.md.",
+      "groupName": "spec"
+    },
+    {
+      "name": "techStack",
+      "type": "string",
+      "label": "Technology Stack",
+      "defaultValue": "",
+      "required": true,
+      "helpMarkDown": "Technology stack and architecture choices for the implementation. Example: 'The application uses .NET Aspire with Postgres as the database. The frontend should use Blazor server with drag-and-drop task boards.'",
+      "groupName": "tech"
+    },
+    {
+      "name": "architecture",
+      "type": "string",
+      "label": "Architecture Description",
+      "defaultValue": "",
+      "required": false,
+      "helpMarkDown": "Additional architecture requirements and constraints.",
+      "groupName": "tech"
+    },
+    {
+      "name": "aiAssistant",
+      "type": "pickList",
+      "label": "AI Assistant",
+      "defaultValue": "copilot",
+      "required": true,
+      "helpMarkDown": "AI assistant to use for plan generation.",
+      "options": {
+        "copilot": "GitHub Copilot",
+        "claude": "Claude Code",
+        "gemini": "Gemini CLI",
+        "cursor": "Cursor"
+      },
+      "groupName": "advanced"
+    },
+    {
+      "name": "outputPath",
+      "type": "string",
+      "label": "Output Path",
+      "defaultValue": "$(Build.SourcesDirectory)/plans",
+      "required": false,
+      "helpMarkDown": "Path where the generated plan will be saved. Defaults to $(Build.SourcesDirectory)/plans.",
+      "groupName": "advanced"
+    },
+    {
+      "name": "validatePlan",
+      "type": "boolean",
+      "label": "Validate Plan",
+      "defaultValue": "true",
+      "required": false,
+      "helpMarkDown": "Validate the generated plan for completeness and consistency.",
+      "groupName": "advanced"
+    }
+  ],
+  "execution": {
+    "Node": {
+      "target": "task.js",
+      "argumentFormat": "string"
+    }
+  }
+}

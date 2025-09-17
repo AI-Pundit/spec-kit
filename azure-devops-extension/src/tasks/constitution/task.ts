@@ -50,9 +50,46 @@ class ConstitutionTask {
   }
 
   private async createConstitution(): Promise<void> {
+    // Determine the actual project directory
+    // If projectPath already contains the project name, use it directly
+    // Otherwise, create a subdirectory with the project name
+    const projectDir = path.basename(this.inputs.projectPath) === this.inputs.projectName 
+      ? this.inputs.projectPath 
+      : path.join(this.inputs.projectPath, this.inputs.projectName);
+    
+    tl.debug(`Project directory: ${projectDir}`);
+    
+    // Check if project already exists (has .specify directory)
+    const specifyDir = path.join(projectDir, '.specify');
+    const projectExists = fs.existsSync(specifyDir);
+    
+    tl.debug(`Checking for existing .specify directory: ${specifyDir}`);
+    tl.debug(`Directory exists: ${projectExists}`);
+    
+    if (projectExists) {
+      // Project already exists - just update the constitution
+      tl.debug('Project already exists - updating constitution file');
+      await this.updateConstitution(projectDir);
+    } else {
+      // Create new project
+      tl.debug('Creating new project');
+      await this.createNewProject(projectDir);
+    }
+
+    // Set output variables
+    tl.setVariable('Constitution.ProjectName', this.inputs.projectName);
+    tl.setVariable('Constitution.ProjectPath', projectDir);
+    tl.setVariable('Constitution.AIAssistant', this.inputs.aiAssistant);
+    tl.setVariable('Constitution.ScriptType', this.inputs.scriptType);
+    tl.setVariable('Constitution.ConstitutionPath', path.join(projectDir, '.specify', 'memory', 'constitution.md'));
+
+    tl.setResult(tl.TaskResult.Succeeded, 'Constitution created successfully');
+  }
+
+  private async createNewProject(projectDir: string): Promise<void> {
     const specifyCommand = `uvx --from git+https://github.com/github/spec-kit.git specify`;
     
-    // Build the init command (which creates the constitution)
+    // Build the init command for new project
     const args = [
       'init',
       this.inputs.projectName,
@@ -60,17 +97,14 @@ class ConstitutionTask {
       '--script', this.inputs.scriptType
     ];
 
-    if (this.inputs.updateExisting) {
-      args.push('--here');
-    }
-
     if (this.inputs.debugMode) {
       args.push('--debug');
     }
 
-    // Change to the project directory
+    // Change to the parent directory to create new project
     const originalCwd = process.cwd();
     process.chdir(this.inputs.projectPath);
+    tl.debug(`Working directory: ${this.inputs.projectPath}`);
 
     try {
       tl.debug(`Running: ${specifyCommand} ${args.join(' ')}`);
@@ -81,22 +115,51 @@ class ConstitutionTask {
         env: { ...process.env, PYTHONIOENCODING: 'utf-8' }
       });
 
-      tl.debug('Constitution creation output:');
+      tl.debug('Project creation output:');
       tl.debug(result);
-
-      // Set output variables
-      tl.setVariable('Constitution.ProjectName', this.inputs.projectName);
-      tl.setVariable('Constitution.ProjectPath', this.inputs.projectPath);
-      tl.setVariable('Constitution.AIAssistant', this.inputs.aiAssistant);
-      tl.setVariable('Constitution.ScriptType', this.inputs.scriptType);
-      tl.setVariable('Constitution.ConstitutionPath', path.join(this.inputs.projectPath, '.specify', 'memory', 'constitution.md'));
-
-      tl.setResult(tl.TaskResult.Succeeded, 'Constitution created successfully');
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
-      throw new Error(`Failed to create constitution: ${errorMessage}`);
+      throw new Error(`Failed to create new project: ${errorMessage}`);
     } finally {
       process.chdir(originalCwd);
+    }
+  }
+
+  private async updateConstitution(projectDir: string): Promise<void> {
+    // For existing projects, we just need to ensure the constitution file exists
+    // and is properly formatted. We don't need to re-run the entire init process.
+    const constitutionPath = path.join(projectDir, '.specify', 'memory', 'constitution.md');
+    
+    tl.debug(`Updating constitution file: ${constitutionPath}`);
+    
+    if (fs.existsSync(constitutionPath)) {
+      tl.debug('Constitution file already exists - no update needed');
+    } else {
+      // If constitution doesn't exist, create a basic one
+      tl.debug('Creating basic constitution file');
+      const constitutionContent = `# ${this.inputs.projectName} Constitution
+
+## Core Principles
+
+### I. Test-First Development
+Every feature must be developed using Test-Driven Development (TDD) principles.
+
+### II. Documentation
+All code must be well-documented and self-explanatory.
+
+### III. Simplicity
+Keep solutions simple and avoid unnecessary complexity.
+
+## Governance
+This constitution defines the non-negotiable principles for this project.
+
+**Version**: 1.0.0 | **Ratified**: ${new Date().toISOString().split('T')[0]} | **Last Amended**: ${new Date().toISOString().split('T')[0]}
+`;
+
+      // Ensure the directory exists
+      fs.mkdirSync(path.dirname(constitutionPath), { recursive: true });
+      fs.writeFileSync(constitutionPath, constitutionContent);
+      tl.debug('Basic constitution file created');
     }
   }
 

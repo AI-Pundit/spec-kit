@@ -1,0 +1,193 @@
+{
+  "manifestVersion": 1,
+  "id": "spec-kit-extension",
+  "version": "1.0.0",
+  "name": "Spec Kit - Spec-Driven Development",
+  "description": "Integrate Spec-Driven Development practices into your Azure DevOps pipelines with AI-powered specification generation, planning, and task management.",
+  "publisher": "spec-kit",
+  "targets": [
+    {
+      "id": "Microsoft.VisualStudio.Services"
+    }
+  ],
+  "categories": [
+    "Azure Pipelines",
+    "Azure Repos",
+    "Azure Boards"
+  ],
+  "tags": [
+    "specification",
+    "ai",
+    "development",
+    "planning",
+    "claude",
+    "gemini",
+    "copilot",
+    "cursor"
+  ],
+  "icons": {
+    "default": "images/extension-icon.png"
+  },
+  "screenshots": [
+    {
+      "path": "images/screenshots/specify-task.png"
+    },
+    {
+      "path": "images/screenshots/plan-task.png"
+    },
+    {
+      "path": "images/screenshots/dashboard-widget.png"
+    }
+  ],
+  "content": {
+    "details": {
+      "path": "README.md"
+    },
+    "license": {
+      "path": "LICENSE"
+    }
+  },
+  "links": {
+    "home": {
+      "uri": "https://github.com/github/spec-kit"
+    },
+    "support": {
+      "uri": "https://github.com/github/spec-kit/issues"
+    },
+    "repository": {
+      "uri": "https://github.com/github/spec-kit"
+    }
+  },
+  "repository": {
+    "type": "git",
+    "uri": "https://github.com/github/spec-kit"
+  },
+  "branding": {
+    "color": "#0078d4",
+    "theme": "dark"
+  },
+  "files": [
+    {
+      "path": "tasks",
+      "addressable": true
+    },
+    {
+      "path": "widgets",
+      "addressable": true
+    },
+    {
+      "path": "images",
+      "addressable": true
+    }
+  ],
+  "contributions": [
+    {
+      "id": "constitution-task",
+      "type": "ms.vss-distributed-task.task",
+      "targets": [
+        "ms.vss-distributed-task.tasks"
+      ],
+      "properties": {
+        "name": "tasks/constitution"
+      }
+    },
+    {
+      "id": "specify-task",
+      "type": "ms.vss-distributed-task.task",
+      "targets": [
+        "ms.vss-distributed-task.tasks"
+      ],
+      "properties": {
+        "name": "tasks/specify"
+      }
+    },
+    {
+      "id": "plan-task",
+      "type": "ms.vss-distributed-task.task",
+      "targets": [
+        "ms.vss-distributed-task.tasks"
+      ],
+      "properties": {
+        "name": "tasks/plan"
+      }
+    },
+    {
+      "id": "tasks-task",
+      "type": "ms.vss-distributed-task.task",
+      "targets": [
+        "ms.vss-distributed-task.tasks"
+      ],
+      "properties": {
+        "name": "tasks/tasks"
+      }
+    },
+    {
+      "id": "validate-spec-task",
+      "type": "ms.vss-distributed-task.task",
+      "targets": [
+        "ms.vss-distributed-task.tasks"
+      ],
+      "properties": {
+        "name": "tasks/validate-spec"
+      }
+    },
+    {
+      "id": "spec-progress-widget",
+      "type": "ms.vss-dashboards-web.widget",
+      "targets": [
+        "ms.vss-dashboards-web.dashboard"
+      ],
+      "properties": {
+        "name": "Spec Progress Widget",
+        "uri": "widgets/spec-progress.html",
+        "supportedSizes": [
+          {
+            "rowSpan": 2,
+            "columnSpan": 2
+          },
+          {
+            "rowSpan": 2,
+            "columnSpan": 3
+          }
+        ],
+        "supportedScopes": [
+          "project_team"
+        ]
+      }
+    },
+    {
+      "id": "ai-status-widget",
+      "type": "ms.vss-dashboards-web.widget",
+      "targets": [
+        "ms.vss-dashboards-web.dashboard"
+      ],
+      "properties": {
+        "name": "AI Assistant Status Widget",
+        "uri": "widgets/ai-status.html",
+        "supportedSizes": [
+          {
+            "rowSpan": 1,
+            "columnSpan": 2
+          },
+          {
+            "rowSpan": 2,
+            "columnSpan": 2
+          }
+        ],
+        "supportedScopes": [
+          "project_team"
+        ]
+      }
+    }
+  ],
+  "scopes": [
+    "vso.work",
+    "vso.build",
+    "vso.release",
+    "vso.code",
+    "vso.project"
+  ],
+  "demands": [
+    "api-version/3.0"
+  ]
+}

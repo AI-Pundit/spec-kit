@@ -136,6 +136,7 @@ jobs:
       uses: actions/download-artifact@v4
       with:
         name: extension-package
+        path: .
         
     - name: Setup Node.js
       uses: actions/setup-node@v4
@@ -157,6 +158,14 @@ jobs:
         # Get the extension file
         EXTENSION_FILE=$(ls spec-kit.spec-kit-extension-*.vsix | head -1)
         echo "Deploying extension: $EXTENSION_FILE"
+        
+        # Verify the extension file exists
+        if [ ! -f "$EXTENSION_FILE" ]; then
+          echo "❌ Extension file not found: $EXTENSION_FILE"
+          echo "Available files:"
+          ls -la *.vsix 2>/dev/null || echo "No .vsix files found"
+          exit 1
+        fi
         
         # Deploy extension
         tfx extension publish --vsix $EXTENSION_FILE --token $AZURE_DEVOPS_EXT_PAT

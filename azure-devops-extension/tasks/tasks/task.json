@@ -1,11 +1,11 @@
 {
-  "id": "c3d4e5f6-g7h8-9012-cdef-345678901234",
+  "id": "cc6602e6-ca6f-402c-b934-2b226b0d36dd",
   "name": "Tasks",
   "friendlyName": "Tasks - Generate Task List",
   "description": "Generate actionable task lists from implementation plans using the Spec Kit task generation capabilities. This task creates detailed, assignable tasks with dependencies and acceptance criteria.",
   "helpMarkDown": "https://github.com/github/spec-kit",
   "category": "Build",
-  "author": "Spec Kit Team",
+  "author": "Wai Technologies",
   "version": {
     "Major": 1,
     "Minor": 0,

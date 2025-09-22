@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>AI Pundit Speckit</title>
+    <script type="text/javascript" src="../node_modules/vss-web-extension-sdk/lib/VSS.SDK.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="speckit-hub.css">
+</head>
+<body>
+    <div class="hub-container">
+        <!-- Header Section -->
+        <div class="header-section">
+            <div class="header-content">
+                <div class="logo-section">
+                    <img src="../images/extension-icon.png" alt="Speckit Logo" class="logo">
+                    <div class="title-section">
+                        <h1>AI Pundit Speckit</h1>
+                        <p class="subtitle">Spec-Driven Development for Azure DevOps</p>
+                    </div>
+                </div>
+                <div class="status-indicators">
+                    <div class="status-card" id="aiStatusCard">
+                        <div class="status-icon ai-status"></div>
+                        <div class="status-text">
+                            <span class="status-label">AI Assistant</span>
+                            <span class="status-value" id="aiStatus">Connected</span>
+                        </div>
+                    </div>
+                    <div class="status-card" id="projectStatusCard">
+                        <div class="status-icon project-status"></div>
+                        <div class="status-text">
+                            <span class="status-label">Project Status</span>
+                            <span class="status-value" id="projectStatus">Ready</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <div class="nav-tabs">
+            <button class="nav-tab active" data-tab="overview">Overview</button>
+            <button class="nav-tab" data-tab="tasks">Tasks</button>
+            <button class="nav-tab" data-tab="progress">Progress</button>
+            <button class="nav-tab" data-tab="settings">Settings</button>
+        </div>
+
+        <!-- Content Sections -->
+        <div class="content-container">
+            <!-- Overview Tab -->
+            <div class="tab-content active" id="overview">
+                <div class="overview-grid">
+                    <div class="overview-card">
+                        <div class="card-header">
+                            <h3>Quick Actions</h3>
+                        </div>
+                        <div class="card-content">
+                            <button class="action-btn primary" id="initializeProjectBtn">
+                                <span class="btn-icon">🚀</span>
+                                Initialize New Project
+                            </button>
+                            <button class="action-btn secondary" id="generateSpecBtn">
+                                <span class="btn-icon">📝</span>
+                                Generate Specification
+                            </button>
+                            <button class="action-btn secondary" id="createPlanBtn">
+                                <span class="btn-icon">📋</span>
+                                Create Development Plan
+                            </button>
+                            <button class="action-btn secondary" id="validateSpecBtn">
+                                <span class="btn-icon">✅</span>
+                                Validate Specification
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="overview-card">
+                        <div class="card-header">
+                            <h3>Project Overview</h3>
+                        </div>
+                        <div class="card-content">
+                            <div class="metric-row">
+                                <span class="metric-label">Total Specifications:</span>
+                                <span class="metric-value" id="totalSpecs">0</span>
+                            </div>
+                            <div class="metric-row">
+                                <span class="metric-label">Completed Tasks:</span>
+                                <span class="metric-value" id="completedTasks">0</span>
+                            </div>
+                            <div class="metric-row">
+                                <span class="metric-label">Active Plans:</span>
+                                <span class="metric-value" id="activePlans">0</span>
+                            </div>
+                            <div class="metric-row">
+                                <span class="metric-label">AI Tokens Used:</span>
+                                <span class="metric-value" id="tokensUsed">0</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="overview-card">
+                        <div class="card-header">
+                            <h3>Recent Activity</h3>
+                        </div>
+                        <div class="card-content">
+                            <div class="activity-list" id="recentActivity">
+                                <div class="activity-item">
+                                    <span class="activity-time">Just now</span>
+                                    <span class="activity-text">Extension loaded successfully</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tasks Tab -->
+            <div class="tab-content" id="tasks">
+                <div class="tasks-section">
+                    <h2>Available Tasks</h2>
+                    <div class="tasks-grid">
+                        <div class="task-card" data-task="constitution">
+                            <div class="task-header">
+                                <h3>Constitution Setup</h3>
+                                <span class="task-status not-configured">Not Configured</span>
+                            </div>
+                            <p class="task-description">Define project constitution and development principles using AI assistance.</p>
+                            <div class="task-actions">
+                                <button class="btn-configure" data-task="constitution">Configure</button>
+                                <button class="btn-execute" data-task="constitution" disabled>Execute</button>
+                            </div>
+                        </div>
+
+                        <div class="task-card" data-task="specify">
+                            <div class="task-header">
+                                <h3>Specify</h3>
+                                <span class="task-status not-configured">Not Configured</span>
+                            </div>
+                            <p class="task-description">Initialize spec-driven development project with AI-powered specification generation.</p>
+                            <div class="task-actions">
+                                <button class="btn-configure" data-task="specify">Configure</button>
+                                <button class="btn-execute" data-task="specify" disabled>Execute</button>
+                            </div>
+                        </div>
+
+                        <div class="task-card" data-task="plan">
+                            <div class="task-header">
+                                <h3>Plan</h3>
+                                <span class="task-status not-configured">Not Configured</span>
+                            </div>
+                            <p class="task-description">Generate comprehensive development plans from specifications using AI analysis.</p>
+                            <div class="task-actions">
+                                <button class="btn-configure" data-task="plan">Configure</button>
+                                <button class="btn-execute" data-task="plan" disabled>Execute</button>
+                            </div>
+                        </div>
+
+                        <div class="task-card" data-task="tasks">
+                            <div class="task-header">
+                                <h3>Tasks</h3>
+                                <span class="task-status not-configured">Not Configured</span>
+                            </div>
+                            <p class="task-description">Break down plans into actionable development tasks with AI assistance.</p>
+                            <div class="task-actions">
+                                <button class="btn-configure" data-task="tasks">Configure</button>
+                                <button class="btn-execute" data-task="tasks" disabled>Execute</button>
+                            </div>
+                        </div>
+
+                        <div class="task-card" data-task="validate-spec">
+                            <div class="task-header">
+                                <h3>Validate Specification</h3>
+                                <span class="task-status not-configured">Not Configured</span>
+                            </div>
+                            <p class="task-description">Validate and verify specifications against implementation using AI analysis.</p>
+                            <div class="task-actions">
+                                <button class="btn-configure" data-task="validate-spec">Configure</button>
+                                <button class="btn-execute" data-task="validate-spec" disabled>Execute</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Progress Tab -->
+            <div class="tab-content" id="progress">
+                <div class="progress-section">
+                    <h2>Development Progress</h2>
+                    <div class="progress-dashboard" id="progressDashboard">
+                        <!-- Progress widgets will be loaded here -->
+                        <div class="progress-card">
+                            <h3>Specification Progress</h3>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: 0%"></div>
+                            </div>
+                            <p class="progress-text">0% Complete</p>
+                        </div>
+                        
+                        <div class="progress-card">
+                            <h3>Planning Progress</h3>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: 0%"></div>
+                            </div>
+                            <p class="progress-text">0% Complete</p>
+                        </div>
+
+                        <div class="progress-card">
+                            <h3>Task Completion</h3>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: 0%"></div>
+                            </div>
+                            <p class="progress-text">0% Complete</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Settings Tab -->
+            <div class="tab-content" id="settings">
+                <div class="settings-section">
+                    <h2>Extension Settings</h2>
+                    <div class="settings-form">
+                        <div class="setting-group">
+                            <h3>AI Configuration</h3>
+                            <div class="form-group">
+                                <label for="aiProvider">AI Provider:</label>
+                                <select id="aiProvider">
+                                    <option value="claude">Claude (Anthropic)</option>
+                                    <option value="gpt">GPT (OpenAI)</option>
+                                    <option value="gemini">Gemini (Google)</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="apiKey">API Key:</label>
+                                <input type="password" id="apiKey" placeholder="Enter your AI provider API key">
+                            </div>
+                        </div>
+
+                        <div class="setting-group">
+                            <h3>Project Configuration</h3>
+                            <div class="form-group">
+                                <label for="defaultPath">Default Project Path:</label>
+                                <input type="text" id="defaultPath" placeholder="$(Build.SourcesDirectory)">
+                            </div>
+                            <div class="form-group">
+                                <label for="templatePath">Template Path:</label>
+                                <input type="text" id="templatePath" placeholder="Path to custom templates">
+                            </div>
+                        </div>
+
+                        <div class="setting-group">
+                            <h3>Advanced Settings</h3>
+                            <div class="form-group">
+                                <label>
+                                    <input type="checkbox" id="enableVerboseLogging">
+                                    Enable Verbose Logging
+                                </label>
+                            </div>
+                            <div class="form-group">
+                                <label>
+                                    <input type="checkbox" id="enableAutoValidation">
+                                    Enable Auto-Validation
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="settings-actions">
+                            <button class="btn-save" id="saveSettings">Save Settings</button>
+                            <button class="btn-reset" id="resetSettings">Reset to Defaults</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal for Task Configuration -->
+        <div class="modal" id="taskConfigModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 id="modalTitle">Configure Task</h3>
+                    <button class="modal-close" id="closeModal">&times;</button>
+                </div>
+                <div class="modal-body" id="modalBody">
+                    <!-- Task configuration form will be loaded here -->
+                </div>
+                <div class="modal-footer">
+                    <button class="btn-cancel" id="cancelConfig">Cancel</button>
+                    <button class="btn-save" id="saveConfig">Save Configuration</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="text/javascript" src="speckit-hub.js"></script>
+</body>
+</html>

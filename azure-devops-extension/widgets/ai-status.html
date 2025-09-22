@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>AI Assistant Status Widget</title>
+    <script type="text/javascript" src="../node_modules/vss-web-extension-sdk/lib/VSS.SDK.min.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 16px;
+            background: #f8f9fa;
+            color: #333;
+        }
+
+        .widget-container {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .widget-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .widget-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .ai-status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #28a745;
+            animation: pulse 2s infinite;
+        }
+
+        .ai-status-indicator.disconnected {
+            background: #dc3545;
+            animation: none;
+        }
+
+        .ai-status-indicator.warning {
+            background: #ffc107;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        .refresh-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 6px;
+            border-radius: 4px;
+            color: #666;
+            transition: all 0.2s ease;
+        }
+
+        .refresh-btn:hover {
+            background: #e9ecef;
+            color: #333;
+        }
+
+        .ai-overview {
+            background: white;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 16px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .provider-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .provider-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            background: linear-gradient(135deg, #0078d4, #005a9e);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .provider-details {
+            flex: 1;
+        }
+
+        .provider-name {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 2px;
+        }
+
+        .provider-status {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .connection-status {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .connection-status.connected {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .connection-status.disconnected {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .connection-status.warning {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .metric-card {
+            background: white;
+            border-radius: 8px;
+            padding: 12px;
+            text-align: center;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .metric-value {
+            font-size: 20px;
+            font-weight: 700;
+            color: #0078d4;
+            line-height: 1;
+            margin-bottom: 4px;
+        }
+
+        .metric-label {
+            font-size: 10px;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .activity-section {
+            background: white;
+            border-radius: 8px;
+            padding: 16px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            flex: 1;
+        }
+
+        .section-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .section-icon {
+            font-size: 16px;
+        }
+
+        .activity-list {
+            max-height: 120px;
+            overflow-y: auto;
+        }
+
+        .activity-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .activity-item:last-child {
+            border-bottom: none;
+        }
+
+        .activity-icon {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 8px;
+            color: white;
+        }
+
+        .activity-icon.request {
+            background: #007bff;
+        }
+
+        .activity-icon.response {
+            background: #28a745;
+        }
+
+        .activity-icon.error {
+            background: #dc3545;
+        }
+
+        .activity-details {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .activity-text {
+            font-size: 12px;
+            color: #333;
+            margin-bottom: 2px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .activity-time {
+            font-size: 10px;
+            color: #666;
+        }
+
+        .token-usage {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 12px;
+            padding: 8px;
+            background: #f8f9fa;
+            border-radius: 6px;
+        }
+
+        .usage-bar {
+            flex: 1;
+            height: 4px;
+            background: #e9ecef;
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .usage-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #28a745, #20c997);
+            border-radius: 2px;
+            transition: width 0.3s ease;
+        }
+
+        .usage-text {
+            font-size: 10px;
+            color: #666;
+            white-space: nowrap;
+        }
+
+        .no-data {
+            text-align: center;
+            color: #666;
+            font-style: italic;
+            padding: 20px;
+            font-size: 12px;
+        }
+
+        .error-state {
+            text-align: center;
+            padding: 20px;
+            color: #dc3545;
+        }
+
+        .error-icon {
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+
+        .error-text {
+            font-size: 12px;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 250px) {
+            .metrics-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .provider-info {
+                flex-direction: column;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="widget-container">
+        <div class="widget-header">
+            <h2 class="widget-title">
+                <span class="ai-status-indicator" id="statusIndicator"></span>
+                AI Assistant
+            </h2>
+            <button class="refresh-btn" id="refreshBtn" title="Refresh Status">
+                🔄
+            </button>
+        </div>
+
+        <div class="ai-overview">
+            <div class="provider-info">
+                <div class="provider-icon" id="providerIcon">AI</div>
+                <div class="provider-details">
+                    <div class="provider-name" id="providerName">Claude</div>
+                    <div class="provider-status" id="providerModel">anthropic/claude-3-sonnet</div>
+                </div>
+                <div class="connection-status connected" id="connectionStatus">Connected</div>
+            </div>
+
+            <div class="token-usage">
+                <span class="usage-text">Token Usage:</span>
+                <div class="usage-bar">
+                    <div class="usage-fill" id="tokenUsageFill" style="width: 0%"></div>
+                </div>
+                <span class="usage-text" id="tokenUsageText">0 / 10k</span>
+            </div>
+        </div>
+
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <div class="metric-value" id="requestsToday">0</div>
+                <div class="metric-label">Requests</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value" id="avgResponse">0ms</div>
+                <div class="metric-label">Avg Time</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value" id="tokensUsed">0</div>
+                <div class="metric-label">Tokens</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value" id="errorRate">0%</div>
+                <div class="metric-label">Errors</div>
+            </div>
+        </div>
+
+        <div class="activity-section">
+            <div class="section-title">
+                <span class="section-icon">📝</span>
+                Recent Activity
+            </div>
+            <div class="activity-list" id="activityList">
+                <div class="no-data">No recent activity</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class AIStatusWidget {
+            constructor() {
+                this.data = {
+                    provider: 'claude',
+                    isConnected: true,
+                    metrics: {
+                        requestsToday: 0,
+                        avgResponseTime: 0,
+                        tokensUsed: 0,
+                        errorRate: 0,
+                        tokenLimit: 10000
+                    },
+                    recentActivity: []
+                };
+                this.init();
+            }
+
+            init() {
+                VSS.init({
+                    explicitNotifyLoaded: true,
+                    usePlatformStyles: true
+                });
+
+                VSS.ready(() => {
+                    this.setupEventHandlers();
+                    this.loadData();
+                    VSS.notifyLoadSucceeded();
+                    
+                    // Start periodic updates
+                    this.startPeriodicUpdates();
+                });
+            }
+
+            setupEventHandlers() {
+                document.getElementById('refreshBtn').addEventListener('click', () => {
+                    this.refreshData();
+                });
+            }
+
+            startPeriodicUpdates() {
+                // Update every 30 seconds
+                setInterval(() => {
+                    this.loadData();
+                }, 30000);
+            }
+
+            async loadData() {
+                try {
+                    await this.fetchAIStatus();
+                    this.updateUI();
+                } catch (error) {
+                    console.error('Error loading AI status:', error);
+                    this.showError();
+                }
+            }
+
+            async fetchAIStatus() {
+                // Simulate API call delay
+                await new Promise(resolve => setTimeout(resolve, 500));
+                
+                // Mock data - in real implementation, this would call your AI service APIs
+                const isConnected = Math.random() > 0.1; // 90% chance of being connected
+                
+                this.data.isConnected = isConnected;
+                
+                if (isConnected) {
+                    this.data.metrics = {
+                        requestsToday: Math.floor(Math.random() * 150) + 25,
+                        avgResponseTime: Math.floor(Math.random() * 2000) + 500,
+                        tokensUsed: Math.floor(Math.random() * 8000) + 1000,
+                        errorRate: Math.floor(Math.random() * 5),
+                        tokenLimit: 10000
+                    };
+
+                    // Generate some recent activity
+                    this.generateRecentActivity();
+                } else {
+                    this.data.metrics = {
+                        requestsToday: 0,
+                        avgResponseTime: 0,
+                        tokensUsed: 0,
+                        errorRate: 0,
+                        tokenLimit: 10000
+                    };
+                    this.data.recentActivity = [];
+                }
+            }
+
+            generateRecentActivity() {
+                const activities = [
+                    { type: 'request', text: 'Generated specification for user auth', time: new Date(Date.now() - 300000) },
+                    { type: 'response', text: 'Created development plan', time: new Date(Date.now() - 600000) },
+                    { type: 'request', text: 'Validated API specification', time: new Date(Date.now() - 900000) },
+                    { type: 'response', text: 'Generated task breakdown', time: new Date(Date.now() - 1200000) },
+                    { type: 'request', text: 'Constitution analysis completed', time: new Date(Date.now() - 1800000) }
+                ];
+
+                // Add some random errors occasionally
+                if (Math.random() > 0.8) {
+                    activities.unshift({
+                        type: 'error',
+                        text: 'Rate limit exceeded - retrying',
+                        time: new Date(Date.now() - 60000)
+                    });
+                }
+
+                this.data.recentActivity = activities.slice(0, 5);
+            }
+
+            updateUI() {
+                this.updateConnectionStatus();
+                this.updateProviderInfo();
+                this.updateMetrics();
+                this.updateTokenUsage();
+                this.updateActivity();
+            }
+
+            updateConnectionStatus() {
+                const indicator = document.getElementById('statusIndicator');
+                const status = document.getElementById('connectionStatus');
+                
+                if (this.data.isConnected) {
+                    const tokenUsagePercent = (this.data.metrics.tokensUsed / this.data.metrics.tokenLimit) * 100;
+                    
+                    if (tokenUsagePercent > 90) {
+                        indicator.className = 'ai-status-indicator warning';
+                        status.className = 'connection-status warning';
+                        status.textContent = 'Limit Warning';
+                    } else {
+                        indicator.className = 'ai-status-indicator';
+                        status.className = 'connection-status connected';
+                        status.textContent = 'Connected';
+                    }
+                } else {
+                    indicator.className = 'ai-status-indicator disconnected';
+                    status.className = 'connection-status disconnected';
+                    status.textContent = 'Disconnected';
+                }
+            }
+
+            updateProviderInfo() {
+                const providerIcon = document.getElementById('providerIcon');
+                const providerName = document.getElementById('providerName');
+                const providerModel = document.getElementById('providerModel');
+
+                switch (this.data.provider) {
+                    case 'claude':
+                        providerIcon.textContent = 'C';
+                        providerName.textContent = 'Claude';
+                        providerModel.textContent = 'anthropic/claude-3-sonnet';
+                        break;
+                    case 'gpt':
+                        providerIcon.textContent = 'G';
+                        providerName.textContent = 'GPT';
+                        providerModel.textContent = 'openai/gpt-4';
+                        break;
+                    case 'gemini':
+                        providerIcon.textContent = 'G';
+                        providerName.textContent = 'Gemini';
+                        providerModel.textContent = 'google/gemini-pro';
+                        break;
+                    default:
+                        providerIcon.textContent = 'AI';
+                        providerName.textContent = 'AI Assistant';
+                        providerModel.textContent = 'Unknown model';
+                }
+            }
+
+            updateMetrics() {
+                const { requestsToday, avgResponseTime, tokensUsed, errorRate } = this.data.metrics;
+                
+                document.getElementById('requestsToday').textContent = requestsToday;
+                document.getElementById('avgResponse').textContent = avgResponseTime > 0 ? `${avgResponseTime}ms` : '0ms';
+                document.getElementById('tokensUsed').textContent = this.formatNumber(tokensUsed);
+                document.getElementById('errorRate').textContent = `${errorRate}%`;
+            }
+
+            updateTokenUsage() {
+                const { tokensUsed, tokenLimit } = this.data.metrics;
+                const percentage = tokenLimit > 0 ? (tokensUsed / tokenLimit) * 100 : 0;
+                
+                document.getElementById('tokenUsageFill').style.width = `${percentage}%`;
+                document.getElementById('tokenUsageText').textContent = 
+                    `${this.formatNumber(tokensUsed)} / ${this.formatNumber(tokenLimit)}`;
+                
+                // Change color based on usage
+                const fill = document.getElementById('tokenUsageFill');
+                if (percentage > 90) {
+                    fill.style.background = 'linear-gradient(90deg, #dc3545, #c82333)';
+                } else if (percentage > 75) {
+                    fill.style.background = 'linear-gradient(90deg, #ffc107, #e0a800)';
+                } else {
+                    fill.style.background = 'linear-gradient(90deg, #28a745, #20c997)';
+                }
+            }
+
+            updateActivity() {
+                const activityList = document.getElementById('activityList');
+                
+                if (!this.data.isConnected || this.data.recentActivity.length === 0) {
+                    activityList.innerHTML = '<div class="no-data">No recent activity</div>';
+                    return;
+                }
+
+                const activityItems = this.data.recentActivity.map(activity => `
+                    <div class="activity-item">
+                        <div class="activity-icon ${activity.type}">
+                            ${this.getActivityIcon(activity.type)}
+                        </div>
+                        <div class="activity-details">
+                            <div class="activity-text">${activity.text}</div>
+                            <div class="activity-time">${this.formatTime(activity.time)}</div>
+                        </div>
+                    </div>
+                `).join('');
+
+                activityList.innerHTML = activityItems;
+            }
+
+            getActivityIcon(type) {
+                switch (type) {
+                    case 'request': return '↗';
+                    case 'response': return '↙';
+                    case 'error': return '⚠';
+                    default: return '•';
+                }
+            }
+
+            formatTime(date) {
+                const now = new Date();
+                const diffMs = now - date;
+                const diffMins = Math.floor(diffMs / 60000);
+                
+                if (diffMins < 1) return 'Just now';
+                if (diffMins < 60) return `${diffMins}m ago`;
+                
+                const diffHours = Math.floor(diffMs / 3600000);
+                if (diffHours < 24) return `${diffHours}h ago`;
+                
+                return date.toLocaleDateString();
+            }
+
+            formatNumber(num) {
+                if (num >= 1000000) {
+                    return (num / 1000000).toFixed(1) + 'M';
+                } else if (num >= 1000) {
+                    return (num / 1000).toFixed(1) + 'k';
+                }
+                return num.toString();
+            }
+
+            async refreshData() {
+                const refreshBtn = document.getElementById('refreshBtn');
+                refreshBtn.textContent = '⟳';
+                refreshBtn.style.animation = 'spin 1s linear infinite';
+                
+                try {
+                    await this.loadData();
+                } finally {
+                    refreshBtn.textContent = '🔄';
+                    refreshBtn.style.animation = '';
+                }
+            }
+
+            showError() {
+                const activityList = document.getElementById('activityList');
+                activityList.innerHTML = `
+                    <div class="error-state">
+                        <div class="error-icon">⚠️</div>
+                        <div class="error-text">Unable to load AI status</div>
+                    </div>
+                `;
+                
+                // Reset metrics
+                document.getElementById('requestsToday').textContent = '0';
+                document.getElementById('avgResponse').textContent = '0ms';
+                document.getElementById('tokensUsed').textContent = '0';
+                document.getElementById('errorRate').textContent = '0%';
+                
+                // Update connection status
+                const indicator = document.getElementById('statusIndicator');
+                const status = document.getElementById('connectionStatus');
+                indicator.className = 'ai-status-indicator disconnected';
+                status.className = 'connection-status disconnected';
+                status.textContent = 'Error';
+            }
+        }
+
+        // Add spin animation
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes spin {
+                from { transform: rotate(0deg); }
+                to { transform: rotate(360deg); }
+            }
+        `;
+        document.head.appendChild(style);
+
+        // Initialize widget
+        new AIStatusWidget();
+    </script>
+</body>
+</html>

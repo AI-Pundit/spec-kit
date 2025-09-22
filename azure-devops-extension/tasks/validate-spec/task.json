@@ -1,11 +1,11 @@
 {
-  "id": "d4e5f6g7-h8i9-0123-defg-456789012345",
+  "id": "ac3036d4-d9c7-461b-97dd-97a4a3ad6a30",
   "name": "ValidateSpec",
   "friendlyName": "Validate Spec - Validate Specification",
   "description": "Validate specifications against project requirements and quality standards. This task checks specification completeness, format compliance, and content quality.",
   "helpMarkDown": "https://github.com/github/spec-kit",
   "category": "Build",
-  "author": "Spec Kit Team",
+  "author": "Wai Technologies",
   "version": {
     "Major": 1,
     "Minor": 0,

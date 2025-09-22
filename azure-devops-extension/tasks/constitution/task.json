@@ -5,7 +5,7 @@
   "description": "Initialize a new spec-driven development project with the constitution that defines the foundational principles and constraints. This must be the first task in the workflow.",
   "helpMarkDown": "https://github.com/github/spec-kit",
   "category": "Build",
-  "author": "Spec Kit Team",
+  "author": "Wai Technologies",
   "version": {
     "Major": 1,
     "Minor": 0,

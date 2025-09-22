@@ -1,0 +1,118 @@
+# Test Pipeline for AI Pundit Speckit Extension
+# Use this pipeline to test all extension tasks after installing the VSIX
+
+trigger: none
+
+pool:
+  vmImage: ubuntu-latest
+
+variables:
+  specPath: '$(System.DefaultWorkingDirectory)/specs'
+  planPath: '$(System.DefaultWorkingDirectory)/plans'
+  tasksPath: '$(System.DefaultWorkingDirectory)/tasks'
+  validationPath: '$(System.DefaultWorkingDirectory)/validation-reports'
+
+stages:
+- stage: TestSpecKitExtension
+  displayName: Test Spec Kit Extension
+  jobs:
+  - job: TestAllTasks
+    displayName: Test All Extension Tasks
+    steps:
+    
+    # Create test directories
+    - script: |
+        mkdir -p $(specPath)
+        mkdir -p $(planPath)
+        mkdir -p $(tasksPath)
+        mkdir -p $(validationPath)
+        echo "Test project for AI Pundit Speckit" > README.md
+      displayName: Setup Test Environment
+    
+    # Test Specify Task
+    - task: Specify@1
+      displayName: Test Specify Task
+      inputs:
+        targetPath: '$(System.DefaultWorkingDirectory)'
+        outputPath: '$(specPath)'
+        aiProvider: 'claude'
+      continueOnError: true
+        
+    # Test Plan Task  
+    - task: Plan@1
+      displayName: Test Plan Task
+      inputs:
+        specPath: '$(specPath)'
+        outputPath: '$(planPath)'
+        aiProvider: 'claude'
+      continueOnError: true
+        
+    # Test Tasks Task
+    - task: Tasks@1
+      displayName: Test Tasks Task
+      inputs:
+        planPath: '$(planPath)'
+        outputPath: '$(tasksPath)'
+        aiProvider: 'claude'
+      continueOnError: true
+        
+    # Test ValidateSpec Task
+    - task: ValidateSpec@1
+      displayName: Test ValidateSpec Task
+      inputs:
+        specPath: '$(specPath)'
+        outputPath: '$(validationPath)'
+      continueOnError: true
+        
+    # Test Constitution Task
+    - task: Constitution@1
+      displayName: Test Constitution Task
+      inputs:
+        constitutionPath: '$(System.DefaultWorkingDirectory)/constitution.md'
+        outputPath: '$(System.DefaultWorkingDirectory)/updated-constitution.md'
+      continueOnError: true
+        
+    # Create test constitution file if it doesn't exist
+    - script: |
+        if [ ! -f constitution.md ]; then
+          echo "# Test Constitution" > constitution.md
+          echo "This is a test constitution file for validation." >> constitution.md
+        fi
+      displayName: Create Test Constitution File
+      
+    # Show test results
+    - script: |
+        echo "=== Test Results ==="
+        echo "Specifications directory:"
+        ls -la $(specPath) || echo "No specs generated"
+        echo ""
+        echo "Plans directory:"
+        ls -la $(planPath) || echo "No plans generated"
+        echo ""
+        echo "Tasks directory:"  
+        ls -la $(tasksPath) || echo "No tasks generated"
+        echo ""
+        echo "Validation reports directory:"
+        ls -la $(validationPath) || echo "No validation reports generated"
+      displayName: Show Test Results
+        
+    # Publish test artifacts
+    - publish: '$(specPath)'
+      artifact: 'test-specifications'
+      displayName: Publish Test Specifications
+      condition: always()
+      
+    - publish: '$(planPath)'
+      artifact: 'test-plans'
+      displayName: Publish Test Plans
+      condition: always()
+      
+    - publish: '$(tasksPath)'
+      artifact: 'test-tasks'
+      displayName: Publish Test Tasks
+      condition: always()
+      
+    - publish: '$(validationPath)'
+      artifact: 'test-validation-reports'
+      displayName: Publish Test Validation Reports
+      condition: always()

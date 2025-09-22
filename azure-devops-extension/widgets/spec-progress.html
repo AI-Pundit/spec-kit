@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Spec Progress Widget</title>
+    <script type="text/javascript" src="../node_modules/vss-web-extension-sdk/lib/VSS.SDK.min.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 16px;
+            background: #f8f9fa;
+            color: #333;
+        }
+
+        .widget-container {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .widget-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .widget-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin: 0;
+        }
+
+        .refresh-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 6px;
+            border-radius: 4px;
+            color: #666;
+            transition: all 0.2s ease;
+        }
+
+        .refresh-btn:hover {
+            background: #e9ecef;
+            color: #333;
+        }
+
+        .progress-overview {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .progress-metric {
+            background: white;
+            border-radius: 8px;
+            padding: 16px;
+            text-align: center;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border-left: 4px solid #0078d4;
+        }
+
+        .metric-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #0078d4;
+            line-height: 1;
+            margin-bottom: 4px;
+        }
+
+        .metric-label {
+            font-size: 12px;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .progress-details {
+            background: white;
+            border-radius: 8px;
+            padding: 16px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            flex: 1;
+        }
+
+        .progress-section {
+            margin-bottom: 20px;
+        }
+
+        .progress-section:last-child {
+            margin-bottom: 0;
+        }
+
+        .section-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .section-icon {
+            width: 16px;
+            height: 16px;
+            background: #0078d4;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 10px;
+        }
+
+        .progress-bar-container {
+            margin-bottom: 8px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: #e9ecef;
+            border-radius: 3px;
+            overflow: hidden;
+            margin-bottom: 4px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #0078d4, #005a9e);
+            border-radius: 3px;
+            transition: width 0.5s ease;
+        }
+
+        .progress-text {
+            font-size: 12px;
+            color: #666;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .spec-list {
+            max-height: 150px;
+            overflow-y: auto;
+        }
+
+        .spec-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .spec-item:last-child {
+            border-bottom: none;
+        }
+
+        .spec-status {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .spec-status.completed {
+            background: #28a745;
+        }
+
+        .spec-status.in-progress {
+            background: #ffc107;
+        }
+
+        .spec-status.pending {
+            background: #6c757d;
+        }
+
+        .spec-name {
+            font-size: 13px;
+            color: #333;
+            flex: 1;
+        }
+
+        .spec-date {
+            font-size: 11px;
+            color: #666;
+        }
+
+        .no-data {
+            text-align: center;
+            color: #666;
+            font-style: italic;
+            padding: 20px;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 6px;
+        }
+
+        .status-active {
+            background: #28a745;
+            animation: pulse 2s infinite;
+        }
+
+        .status-inactive {
+            background: #6c757d;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 300px) {
+            .progress-overview {
+                grid-template-columns: 1fr;
+            }
+            
+            .metric-value {
+                font-size: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="widget-container">
+        <div class="widget-header">
+            <h2 class="widget-title">
+                <span class="status-indicator status-active"></span>
+                Spec Progress
+            </h2>
+            <button class="refresh-btn" id="refreshBtn" title="Refresh Data">
+                🔄
+            </button>
+        </div>
+
+        <div class="progress-overview">
+            <div class="progress-metric">
+                <div class="metric-value" id="totalSpecs">0</div>
+                <div class="metric-label">Total Specs</div>
+            </div>
+            <div class="progress-metric">
+                <div class="metric-value" id="completedSpecs">0</div>
+                <div class="metric-label">Completed</div>
+            </div>
+            <div class="progress-metric">
+                <div class="metric-value" id="activeSpecs">0</div>
+                <div class="metric-label">In Progress</div>
+            </div>
+        </div>
+
+        <div class="progress-details">
+            <div class="progress-section">
+                <div class="section-title">
+                    <span class="section-icon">📝</span>
+                    Overall Progress
+                </div>
+                <div class="progress-bar-container">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="overallProgress" style="width: 0%"></div>
+                    </div>
+                    <div class="progress-text">
+                        <span id="progressPercent">0%</span>
+                        <span id="progressDetails">0 of 0 complete</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="progress-section">
+                <div class="section-title">
+                    <span class="section-icon">📋</span>
+                    Recent Specifications
+                </div>
+                <div class="spec-list" id="specList">
+                    <div class="no-data">No specifications found</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class SpecProgressWidget {
+            constructor() {
+                this.data = {
+                    specs: [],
+                    metrics: {
+                        total: 0,
+                        completed: 0,
+                        inProgress: 0,
+                        pending: 0
+                    }
+                };
+                this.init();
+            }
+
+            init() {
+                VSS.init({
+                    explicitNotifyLoaded: true,
+                    usePlatformStyles: true
+                });
+
+                VSS.ready(() => {
+                    this.setupEventHandlers();
+                    this.loadData();
+                    VSS.notifyLoadSucceeded();
+                });
+            }
+
+            setupEventHandlers() {
+                document.getElementById('refreshBtn').addEventListener('click', () => {
+                    this.refreshData();
+                });
+            }
+
+            async loadData() {
+                try {
+                    // Simulate loading data - in real implementation, this would call Azure DevOps APIs
+                    await this.fetchSpecificationData();
+                    this.updateUI();
+                } catch (error) {
+                    console.error('Error loading spec progress data:', error);
+                    this.showError();
+                }
+            }
+
+            async fetchSpecificationData() {
+                // Simulate API call delay
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                
+                // Mock data - in real implementation, fetch from Azure DevOps work items, repos, etc.
+                this.data.specs = [
+                    {
+                        id: 1,
+                        name: 'User Authentication Spec',
+                        status: 'completed',
+                        lastUpdated: new Date(Date.now() - 86400000), // 1 day ago
+                        progress: 100
+                    },
+                    {
+                        id: 2,
+                        name: 'API Gateway Specification',
+                        status: 'in-progress',
+                        lastUpdated: new Date(Date.now() - 3600000), // 1 hour ago
+                        progress: 75
+                    },
+                    {
+                        id: 3,
+                        name: 'Database Schema Spec',
+                        status: 'in-progress',
+                        lastUpdated: new Date(Date.now() - 7200000), // 2 hours ago
+                        progress: 60
+                    },
+                    {
+                        id: 4,
+                        name: 'Frontend Component Spec',
+                        status: 'pending',
+                        lastUpdated: new Date(Date.now() - 172800000), // 2 days ago
+                        progress: 0
+                    },
+                    {
+                        id: 5,
+                        name: 'Security Requirements',
+                        status: 'completed',
+                        lastUpdated: new Date(Date.now() - 259200000), // 3 days ago
+                        progress: 100
+                    }
+                ];
+
+                this.calculateMetrics();
+            }
+
+            calculateMetrics() {
+                this.data.metrics = {
+                    total: this.data.specs.length,
+                    completed: this.data.specs.filter(s => s.status === 'completed').length,
+                    inProgress: this.data.specs.filter(s => s.status === 'in-progress').length,
+                    pending: this.data.specs.filter(s => s.status === 'pending').length
+                };
+            }
+
+            updateUI() {
+                this.updateMetrics();
+                this.updateProgress();
+                this.updateSpecList();
+            }
+
+            updateMetrics() {
+                const { total, completed, inProgress } = this.data.metrics;
+                
+                document.getElementById('totalSpecs').textContent = total;
+                document.getElementById('completedSpecs').textContent = completed;
+                document.getElementById('activeSpecs').textContent = inProgress;
+            }
+
+            updateProgress() {
+                const { total, completed } = this.data.metrics;
+                const percentage = total > 0 ? Math.round((completed / total) * 100) : 0;
+                
+                document.getElementById('overallProgress').style.width = `${percentage}%`;
+                document.getElementById('progressPercent').textContent = `${percentage}%`;
+                document.getElementById('progressDetails').textContent = `${completed} of ${total} complete`;
+            }
+
+            updateSpecList() {
+                const specList = document.getElementById('specList');
+                
+                if (this.data.specs.length === 0) {
+                    specList.innerHTML = '<div class="no-data">No specifications found</div>';
+                    return;
+                }
+
+                // Sort by last updated (most recent first)
+                const sortedSpecs = [...this.data.specs].sort((a, b) => b.lastUpdated - a.lastUpdated);
+                
+                const specItems = sortedSpecs.map(spec => `
+                    <div class="spec-item">
+                        <div class="spec-status ${spec.status}"></div>
+                        <div class="spec-name">${spec.name}</div>
+                        <div class="spec-date">${this.formatDate(spec.lastUpdated)}</div>
+                    </div>
+                `).join('');
+
+                specList.innerHTML = specItems;
+            }
+
+            formatDate(date) {
+                const now = new Date();
+                const diffMs = now - date;
+                const diffMins = Math.floor(diffMs / 60000);
+                const diffHours = Math.floor(diffMs / 3600000);
+                const diffDays = Math.floor(diffMs / 86400000);
+
+                if (diffMins < 60) {
+                    return `${diffMins}m ago`;
+                } else if (diffHours < 24) {
+                    return `${diffHours}h ago`;
+                } else if (diffDays < 7) {
+                    return `${diffDays}d ago`;
+                } else {
+                    return date.toLocaleDateString();
+                }
+            }
+
+            async refreshData() {
+                const refreshBtn = document.getElementById('refreshBtn');
+                refreshBtn.textContent = '⟳';
+                refreshBtn.style.animation = 'spin 1s linear infinite';
+                
+                try {
+                    await this.loadData();
+                } finally {
+                    refreshBtn.textContent = '🔄';
+                    refreshBtn.style.animation = '';
+                }
+            }
+
+            showError() {
+                const specList = document.getElementById('specList');
+                specList.innerHTML = '<div class="no-data">Error loading data. Please refresh.</div>';
+                
+                // Update metrics to show zero values
+                document.getElementById('totalSpecs').textContent = '0';
+                document.getElementById('completedSpecs').textContent = '0';
+                document.getElementById('activeSpecs').textContent = '0';
+                document.getElementById('overallProgress').style.width = '0%';
+                document.getElementById('progressPercent').textContent = '0%';
+                document.getElementById('progressDetails').textContent = '0 of 0 complete';
+            }
+        }
+
+        // Add spin animation for refresh button
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes spin {
+                from { transform: rotate(0deg); }
+                to { transform: rotate(360deg); }
+            }
+        `;
+        document.head.appendChild(style);
+
+        // Initialize widget
+        new SpecProgressWidget();
+    </script>
+</body>
+</html>

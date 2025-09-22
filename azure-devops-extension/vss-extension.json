@@ -1,10 +1,18 @@
 {
   "manifestVersion": 1,
-  "id": "spec-kit-extension",
-  "version": "1.0.0",
-  "name": "Spec Kit - Spec-Driven Development",
+  "id": "pundit-speckit",
+  "version": "1.5.0",
+  "name": "pundit-speckit",
+  "displayName": "AI Pundit Speckit",
   "description": "Integrate Spec-Driven Development practices into your Azure DevOps pipelines with AI-powered specification generation, planning, and task management.",
-  "publisher": "spec-kit",
+  "publisher": "Ritesh-Speckit",
+  "private": true,
+  "license": "Apache-2.0",
+  "icon": "images/extension-icon.png",
+  "author": {
+    "name": "Wai Technologies",
+    "email": "support@waiin.com"
+  },
   "targets": [
     {
       "id": "Microsoft.VisualStudio.Services"
@@ -76,11 +84,43 @@
       "addressable": true
     },
     {
+      "path": "hub",
+      "addressable": true
+    },
+    {
+      "path": "shared",
+      "addressable": true
+    },
+    {
       "path": "images",
       "addressable": true
     }
   ],
   "contributions": [
+    {
+      "id": "speckit-hub-group",
+      "type": "ms.vss-web.hub-group",
+      "targets": [
+        "ms.vss-web.project-hub-groups-collection"
+      ],
+      "properties": {
+        "name": "Speckit",
+        "order": 40,
+        "icon": "images/extension-icon.png"
+      }
+    },
+    {
+      "id": "speckit-hub",
+      "type": "ms.vss-web.hub",
+      "targets": [
+        "speckit-hub-group"
+      ],
+      "properties": {
+        "name": "Dashboard",
+        "order": 10,
+        "uri": "hub/speckit-hub.html"
+      }
+    },
     {
       "id": "constitution-task",
       "type": "ms.vss-distributed-task.task",
@@ -139,6 +179,9 @@
       ],
       "properties": {
         "name": "Spec Progress Widget",
+        "description": "Track the progress of spec-driven development tasks and milestones in your project dashboard",
+        "catalogIconUrl": "images/extension-icon.png",
+        "previewImageUrl": "images/extension-icon.png",
         "uri": "widgets/spec-progress.html",
         "supportedSizes": [
           {
@@ -163,6 +206,9 @@
       ],
       "properties": {
         "name": "AI Assistant Status Widget",
+        "description": "Monitor AI assistant activity, token usage, and integration status for your development workflow",
+        "catalogIconUrl": "images/extension-icon.png", 
+        "previewImageUrl": "images/extension-icon.png",
         "uri": "widgets/ai-status.html",
         "supportedSizes": [
           {

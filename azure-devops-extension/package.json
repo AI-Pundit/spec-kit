@@ -1,8 +1,9 @@
 {
   "name": "spec-kit-azure-devops-extension",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Azure DevOps extension for Spec Kit - Spec-Driven Development",
   "main": "index.js",
+  "identifier": "Waiin",
   "scripts": {
     "build": "webpack --mode production",
     "build:dev": "webpack --mode development",
@@ -29,7 +30,7 @@
     "copilot",
     "cursor"
   ],
-  "author": "Spec Kit Team",
+  "author": "Wai Technologies",
   "license": "MIT",
   "devDependencies": {
     "@types/node": "^18.15.0",

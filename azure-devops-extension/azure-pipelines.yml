@@ -1,0 +1,105 @@
+# azure-pipelines.yml
+# Test pipeline for Spec Kit Azure DevOps Extension
+
+trigger: none
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  AI_ASSISTANT: 'copilot'
+  SCRIPT_TYPE: 'sh'
+
+steps:
+# Step 1: Initialize Spec-Driven Development
+- task: Specify@1
+  displayName: 'Initialize Spec-Driven Development'
+  inputs:
+    projectName: '$(Build.Repository.Name)'
+    projectPath: '$(Build.SourcesDirectory)'
+    aiAssistant: '$(AI_ASSISTANT)'
+    scriptType: '$(SCRIPT_TYPE)'
+    specifyVersion: 'latest'
+    skipGit: false
+    ignoreAgentTools: false
+    debugMode: true
+
+# Step 2: Generate Implementation Plan
+- task: Plan@1
+  displayName: 'Generate Implementation Plan'
+  inputs:
+    specPath: '$(Build.SourcesDirectory)/specs'
+    specFile: 'spec.md'
+    techStack: 'The application uses React with TypeScript, Node.js backend, and PostgreSQL database.'
+    architecture: 'Microservices architecture with API Gateway'
+    aiAssistant: '$(AI_ASSISTANT)'
+    outputPath: '$(Build.SourcesDirectory)/plans'
+    validatePlan: true
+
+# Step 3: Generate Task List
+- task: Tasks@1
+  displayName: 'Generate Task List'
+  inputs:
+    planPath: '$(Build.SourcesDirectory)/plans'
+    planFile: 'plan.md'
+    aiAssistant: '$(AI_ASSISTANT)'
+    createWorkItems: false
+    assignToTeam: false
+    outputPath: '$(Build.SourcesDirectory)/tasks'
+
+# Step 4: Validate Specifications
+- task: ValidateSpec@1
+  displayName: 'Validate Specifications'
+  inputs:
+    specPath: '$(Build.SourcesDirectory)/specs'
+    specFile: 'spec.md'
+    failOnError: true
+    generateReport: true
+    outputPath: '$(Build.SourcesDirectory)/validation-reports'
+
+# Step 5: Display Results
+- script: |
+    echo "=== Generated Files ==="
+    find $(Build.SourcesDirectory) -name "*.md" -type f | head -20
+    echo "=== Specs Directory ==="
+    ls -la $(Build.SourcesDirectory)/specs/ || echo "No specs directory"
+    echo "=== Plans Directory ==="
+    ls -la $(Build.SourcesDirectory)/plans/ || echo "No plans directory"
+    echo "=== Tasks Directory ==="
+    ls -la $(Build.SourcesDirectory)/tasks/ || echo "No tasks directory"
+    echo "=== Validation Reports ==="
+    ls -la $(Build.SourcesDirectory)/validation-reports/ || echo "No validation reports"
+  displayName: 'Display Generated Files'
+
+# Step 6: Publish Pipeline Artifacts
+- task: PublishPipelineArtifact@1
+  displayName: 'Publish Specs Artifacts'
+  inputs:
+    targetPath: '$(Build.SourcesDirectory)/specs'
+    artifact: 'specs'
+    publishLocation: 'pipeline'
+  condition: always()
+
+- task: PublishPipelineArtifact@1
+  displayName: 'Publish Plans Artifacts'
+  inputs:
+    targetPath: '$(Build.SourcesDirectory)/plans'
+    artifact: 'plans'
+    publishLocation: 'pipeline'
+  condition: always()
+
+- task: PublishPipelineArtifact@1
+  displayName: 'Publish Tasks Artifacts'
+  inputs:
+    targetPath: '$(Build.SourcesDirectory)/tasks'
+    artifact: 'tasks'
+    publishLocation: 'pipeline'
+  condition: always()
+
+- task: PublishPipelineArtifact@1
+  displayName: 'Publish Validation Reports Artifacts'
+  inputs:
+    targetPath: '$(Build.SourcesDirectory)/validation-reports'
+    artifact: 'validation-reports'
+    publishLocation: 'pipeline'
+  condition: always()
